@@ -22,7 +22,7 @@ public class RTCustomField {
 	public static final Pattern PATTERN_CUSTOM_FIELD_NAME = Pattern.compile("CF.\\{(.*)\\}");	
 
 	private String name;
-	private Object value;
+	private String value;
 	
 	public RTCustomField(String name, String value) {
 		this.setName(name);
@@ -36,10 +36,11 @@ public class RTCustomField {
 	public void setName(String name) {
 		this.name = name;
 	}
-	public Object getValue() {
+	// no idea why this should be an object
+	public String getValue() {
 		return value;
 	}
-	public void setValue(Object value) {
+	public void setValue(String value) {
 		this.value = value;
 	}
 

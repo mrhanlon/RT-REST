@@ -32,6 +32,7 @@ Copyright (C) 2012  Benjamin Boksa (http://www.boksa.de/)
     <commons-lang.version>2.4</commons-lang.version>
     <junit.version>4.8.2</junit.version>     
     <log4j.version>1.2.12</log4j.version>     
+    <joda-time.version>2.2</joda-time.version>
   </properties>
   
   <dependencies>
@@ -54,6 +55,11 @@ Copyright (C) 2012  Benjamin Boksa (http://www.boksa.de/)
 	  <groupId>commons-lang</groupId>
 	  <artifactId>commons-lang</artifactId>
 	  <version>${commons-lang.version}</version>
+  </dependency>
+    <dependency>
+	  <groupId>joda-time</groupId>
+	  <artifactId>joda-time</artifactId>
+	  <version>${joda-time.version}</version>
     </dependency>
         
     <!--+

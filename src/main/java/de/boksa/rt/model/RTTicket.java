@@ -15,9 +15,14 @@
  */
 package de.boksa.rt.model;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Date;
+
+import org.apache.commons.beanutils.BeanUtils;
+import org.joda.time.DateTime;
 
 /* Ticket fields as per http://requesttracker.wikia.com/wiki/REST#Ticket_Properties:
 	id:
@@ -44,7 +49,7 @@ import java.util.Date;
 	TimeLeft: 
 */
 
-public class RTTicket implements RTCustomFieldObject {
+public class RTTicket extends RTTicketAbstractObject implements RTCustomFieldObject {
 
 	private Long id;
 	private String queue;
@@ -58,13 +63,13 @@ public class RTTicket implements RTCustomFieldObject {
 	private String requestors;
 	private String cc;
 	private String adminCc;
-	private Date created;
-	private Date starts;
-	private Date started;
-	private Date due;
-	private Date resolved;
-	private Date told;
-	private Date lastUpdated;
+	private DateTime created;
+	private DateTime starts;
+	private DateTime started;
+	private DateTime due;
+	private DateTime resolved;
+	private DateTime told;
+	private DateTime lastUpdated;
 	private Long timeWorked;
 	private Long timeEstimated;
 	private Long timeLeft;
@@ -148,46 +153,46 @@ public class RTTicket implements RTCustomFieldObject {
 	public void setAdminCc(String adminCc) {
 		this.adminCc = adminCc;
 	}
-	public Date getCreated() {
+	public DateTime getCreated() {
 		return created;
 	}
-	public void setCreated(Date created) {
+	public void setCreated(DateTime created) {
 		this.created = created;
 	}
-	public Date getStarts() {
+	public DateTime getStarts() {
 		return starts;
 	}
-	public void setStarts(Date starts) {
+	public void setStarts(DateTime starts) {
 		this.starts = starts;
 	}
-	public Date getStarted() {
+	public DateTime getStarted() {
 		return started;
 	}
-	public void setStarted(Date started) {
+	public void setStarted(DateTime started) {
 		this.started = started;
 	}
-	public Date getDue() {
+	public DateTime getDue() {
 		return due;
 	}
-	public void setDue(Date due) {
+	public void setDue(DateTime due) {
 		this.due = due;
 	}
-	public Date getResolved() {
+	public DateTime getResolved() {
 		return resolved;
 	}
-	public void setResolved(Date resolved) {
+	public void setResolved(DateTime resolved) {
 		this.resolved = resolved;
 	}
-	public Date getTold() {
+	public DateTime getTold() {
 		return told;
 	}
-	public void setTold(Date told) {
+	public void setTold(DateTime told) {
 		this.told = told;
 	}
-	public Date getLastUpdated() {
+	public DateTime getLastUpdated() {
 		return lastUpdated;
 	}
-	public void setLastUpdated(Date lastUpdated) {
+	public void setLastUpdated(DateTime lastUpdated) {
 		this.lastUpdated = lastUpdated;
 	}
 	public Long getTimeEstimated() {
@@ -244,4 +249,32 @@ public class RTTicket implements RTCustomFieldObject {
 			+ ", customFields=" + customFields + "]";
 	}
 	
+	public String getNewTicketParams() {
+		
+		String params =  "id: ticket/new"
+			+ "\nrequestor: " + requestors
+			+ "\nsubject: " + subject
+			+ "\ncc: " + cc
+			+ "\nadmincc: " + adminCc
+			+ "\nowner: " + owner
+			+ "\nstatus: new" 
+			+ "\npriority: " + priority
+			+ "\ninitialPriority: " + initialPriority
+			+ "\nfinalPriority: " + finalPriority
+			+ "\ntimeEstimated: " + timeEstimated
+			+ "\nstarts: " + starts
+			+ "\ndue: " + due
+			+ "\nqueue: " + queue;
+		
+		for (String customFieldName : customFields.keySet()) {
+			params += "\n" + customFieldName + ": " + customFields.get(customFieldName).getValue();
+		}
+			
+		return params;
+	}
+	
+	@Override
+	public void populate(Map<String, String> parameters) throws InvocationTargetException, IllegalAccessException {
+		BeanUtils.populate(this, parameters);
+	}
 }
