@@ -42,6 +42,8 @@ public class RESTRTTicketDaoBasicAuthTest {
     Map<String,Object> factoryParameters = new HashMap<String,Object>();
 
     // for the credentials used see http://requesttracker.wikia.com/wiki/Demo
+    // this RT instance actually isn't protected by BASIC auth.  This should be pointed at an instance that is
+    // for a "real" test.
     LOG.debug("Setting credentials to access the RT demo installation");
     factoryParameters.put(RESTRTDAOFactory.REST_INTERFACE_BASE_URL, "http://rt.easter-eggs.org/demos/stable/REST/1.0/");
     factoryParameters.put(RESTRTDAOFactory.REST_INTERFACE_USERNAME, "john.foo");

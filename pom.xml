@@ -26,7 +26,7 @@ Copyright (C) 2012  Benjamin Boksa (http://www.boksa.de/)
   <version>0.0.1-SNAPSHOT</version>
  
   <properties>
-    <httpclient.version>4.1.1</httpclient.version>
+    <httpclient.version>4.3</httpclient.version>
     <commons-io.version>1.4</commons-io.version>
     <commons-beanutils.version>1.8.0</commons-beanutils.version>
     <commons-lang.version>2.4</commons-lang.version>
