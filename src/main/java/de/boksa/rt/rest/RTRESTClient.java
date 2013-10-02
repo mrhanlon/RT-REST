@@ -22,21 +22,15 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.commons.io.IOUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.client.fluent.Executor;
+import org.apache.http.client.fluent.Request;
 import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.HTTP;
-import org.apache.http.protocol.HttpContext;
 
 import de.boksa.rt.model.RTTicket;
 
-public class RTRESTClient {
+public abstract class RTRESTClient {
 
 	public enum TicketSearchResponseFormat {
 		IDONLY("i"), IDANDSUBJECT("s"), MULTILINE("l");
@@ -52,22 +46,17 @@ public class RTRESTClient {
 		}
 	}
 
-	private static final Pattern PATTERN_RESPONSE_BODY = Pattern.compile("^(.*) (\\d+) (.*)\n((.*\n)*)",
-			Pattern.MULTILINE);
-	private static final String NO_MATCHING_RESULTS = "No matching results";
+	protected static final Pattern PATTERN_RESPONSE_BODY = Pattern.compile("^(.*) (\\d+) (.*)\n((.*\n)*)", Pattern.MULTILINE);
+	protected static final String NO_MATCHING_RESULTS = "No matching results";
 
 	private String restInterfaceBaseURL;
 	private String username;
 	private String password;
 
-	private DefaultHttpClient httpClient;
-
 	public RTRESTClient(String restInterfaceBaseURL, String username, String password) {
 		this.setRestInterfaceBaseURL(restInterfaceBaseURL);
 		this.setUsername(username);
 		this.setPassword(password);
-
-		this.httpClient = new DefaultHttpClient();
 	}
 
 	public RTRESTResponse login() throws IOException {
@@ -179,27 +168,24 @@ public class RTRESTClient {
 		return this.getResponse(url);
 	}
 
-	private RTRESTResponse getResponse(String url) throws IOException {
+	protected Executor getRequestExecutor() {
+		return Executor.newInstance();
+	}
+
+	protected RTRESTResponse getResponse(String url) throws IOException {
 		return this.getResponse(url, new ArrayList<NameValuePair>());
 	}
 
-	protected HttpContext getHttpContext(HttpHost targetHost) {
-		return new BasicHttpContext();
-	}
+	protected RTRESTResponse getResponse(String url, List<NameValuePair> params) throws IOException {
 
-	private RTRESTResponse getResponse(String url, List<NameValuePair> params) throws IOException {
-		HttpPost postRequest = new HttpPost(this.getRestInterfaceBaseURL() + url);
+		Request request = Request.Post(this.getRestInterfaceBaseURL() + url);
 
-		UrlEncodedFormEntity postEntity = new UrlEncodedFormEntity(params, HTTP.UTF_8);
+		UrlEncodedFormEntity postEntity = new UrlEncodedFormEntity(params, "UTF-8");
 		postEntity.setContentType("application/x-www-form-urlencoded");
 
-		postRequest.setEntity(postEntity);
+		request.body(postEntity);
 
-		HttpContext context = getHttpContext(new HttpHost(postRequest.getURI().getHost(), postRequest.getURI().getPort()));
-
-		HttpResponse httpResponse = this.httpClient.execute(postRequest, context);
-
-		String responseBody = IOUtils.toString(httpResponse.getEntity().getContent(), HTTP.UTF_8);
+		String responseBody = this.getRequestExecutor().execute(request).returnContent().asString();
 
 		Matcher matcher = PATTERN_RESPONSE_BODY.matcher(responseBody);
 

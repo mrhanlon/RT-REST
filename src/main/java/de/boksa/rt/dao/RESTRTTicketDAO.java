@@ -141,7 +141,9 @@ public class RESTRTTicketDAO implements RTTicketDAO {
 			if (response.getStatusCode() == 200l) {
 				RTTicketUser user = new RTTicketUser();
 				List<Map<String, String>> attributes = parser.parseResponse(response);
-				BeanUtils.populate(user, attributes.get(0));
+				for (Map<String, String> attribute : attributes) {
+					BeanUtils.populate(user, attribute);
+				}
 				return user;
 			} else {
 				// No matches were found...just return an empty user instead of bombing out like a dumb

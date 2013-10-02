@@ -17,7 +17,8 @@ package de.boksa.rt.dao;
 
 import java.util.Map;
 
-import de.boksa.rt.rest.RTRESTBasicAuthClient;
+import de.boksa.rt.rest.BasicAuthClient;
+import de.boksa.rt.rest.RTAuthClient;
 import de.boksa.rt.rest.RTRESTClient;
 
 public class RESTRTDAOFactory extends RTDAOFactory {
@@ -30,6 +31,8 @@ public class RESTRTDAOFactory extends RTDAOFactory {
 		return SINGLETON;
 	}
 
+	public static final String REST_INTERFACE_HOST = RESTRTDAOFactory.class.getName() + "/host";
+	public static final String REST_INTERFACE_PORT = RESTRTDAOFactory.class.getName() + "/port";
 	public static final String REST_INTERFACE_BASE_URL = RESTRTDAOFactory.class.getName() + "/restInterfaceBaseURL";
 	public static final String REST_INTERFACE_USERNAME = RESTRTDAOFactory.class.getName() + "/username";
 	public static final String REST_INTERFACE_PASSWORD = RESTRTDAOFactory.class.getName() + "/password";
@@ -43,13 +46,13 @@ public class RESTRTDAOFactory extends RTDAOFactory {
 		RESTRTTicketDAO dao = new RESTRTTicketDAO();
 		RTRESTClient client;
 		if (AUTH_TYPE_BASIC.equals(parameters.get(REST_INTERFACE_AUTH_TYPE))) {
-			client = new RTRESTBasicAuthClient(
+			client = new BasicAuthClient(
 					parameters.get(REST_INTERFACE_BASE_URL).toString(),
 					parameters.get(REST_INTERFACE_USERNAME).toString(),
 					parameters.get(REST_INTERFACE_PASSWORD).toString()
 				);
 		} else {
-			client = new RTRESTClient(
+			client = new RTAuthClient(
 					parameters.get(REST_INTERFACE_BASE_URL).toString(),
 					parameters.get(REST_INTERFACE_USERNAME).toString(),
 					parameters.get(REST_INTERFACE_PASSWORD).toString()
