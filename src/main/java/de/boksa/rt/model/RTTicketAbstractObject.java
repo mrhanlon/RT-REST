@@ -3,8 +3,6 @@ package de.boksa.rt.model;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
-import org.apache.commons.beanutils.BeanUtils;
-
 public abstract class RTTicketAbstractObject {
 	Long id;
 	Map<String, RTCustomField> customFields;

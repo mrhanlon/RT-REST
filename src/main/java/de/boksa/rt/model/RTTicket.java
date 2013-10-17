@@ -17,9 +17,7 @@ package de.boksa.rt.model;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
-import java.util.Date;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.joda.time.DateTime;

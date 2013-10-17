@@ -48,13 +48,15 @@ public class RESTRTTicketDAO implements RTTicketDAO {
 
 	@Override
 	public boolean createNewTicket(RTTicket ticket, String text) throws Exception {
-		Pattern PATTERN_TICKET_CREATED = Pattern.compile("^# Ticket \\d+ created.$");
+		Pattern PATTERN_TICKET_CREATED = Pattern.compile("^# Ticket (\\d+) created.$");
 		client.login();
 		RTRESTResponse response = client.newTicket(ticket, text);
 		client.logout();
 
 		Matcher m = PATTERN_TICKET_CREATED.matcher(response.getBody().trim());
 		if (response.getStatusCode() == 200l && m.matches()) {
+			long ticketId = Long.valueOf(m.group(1));
+			ticket.setId(ticketId);
 			return true;
 		} else {
 			return false;
@@ -62,7 +64,7 @@ public class RESTRTTicketDAO implements RTTicketDAO {
 	}
 
 	@Override
-	public RTTicket findById(Long ticketId) throws Exception {
+	public RTTicket getTicket(long ticketId) throws Exception {
 		client.login();
 		RTRESTResponse response = client.getTicket(ticketId);
 		client.logout();
@@ -86,8 +88,8 @@ public class RESTRTTicketDAO implements RTTicketDAO {
 	}
 
 	@Override
-	public RTTicketHistory findHistory(Long history_id) throws IOException {
-		return null;
+	public RTTicketHistory getHistory(long history_id) throws IOException {
+		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
@@ -116,18 +118,43 @@ public class RESTRTTicketDAO implements RTTicketDAO {
 	}
 
 	@Override
-	public RTTicketAttachment findAttachment(Long attachment_id) throws IOException {
-		return null;
+	public List<RTTicketHistory> findHistory(long ticketId) throws Exception {
+		client.login();
+		RTRESTResponse response = client.getTicket(ticketId, "history?format=l");
+		client.logout();
+		RTParser parser = RTParser.getInstance();
+
+		if (parser != null) {
+			if (response.getStatusCode() == 200l) {
+				List<Map<String, String>> attributes = parser.parseResponse(response);
+				List<RTTicketHistory> historyList = new ArrayList<RTTicketHistory>();
+				for (Map<String, String> historyAttribute : attributes) {
+					RTTicketHistory history = new RTTicketHistory();
+					history.populate(historyAttribute);
+					historyList.add(history);
+				}
+				return historyList;
+			} else {
+				return new ArrayList<RTTicketHistory>();
+			}
+		} else {
+			throw new UnsupportedOperationException("Could not create parser for response format.");
+		}
+	}
+
+	@Override
+	public RTTicketAttachment findAttachment(long attachment_id) throws IOException {
+		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
 	public List<RTTicketAttachment> findAttachment(RTTicket ticket) throws IOException {
-		return null;
+		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
-	public RTTicketUser findUser(Long user_id) throws IOException {
-		return null;
+	public RTTicketUser findUser(long user_id) throws IOException {
+		throw new UnsupportedOperationException("Not implemented");
 	}
 
 	@Override
@@ -174,7 +201,7 @@ public class RESTRTTicketDAO implements RTTicketDAO {
 
 				for (Map<String, String> ticketData : parsedResponse) {
 					for (String ticketId : ticketData.keySet()) {
-						tickets.add(findById(Long.decode(ticketId)));
+						tickets.add(getTicket(Long.valueOf(ticketId)));
 					}
 				}
 

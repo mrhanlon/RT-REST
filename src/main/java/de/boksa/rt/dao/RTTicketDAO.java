@@ -26,12 +26,13 @@ import de.boksa.rt.model.RTTicketUser;
 public interface RTTicketDAO {
 
 	public boolean createNewTicket(RTTicket ticket, String text) throws Exception;
-	public RTTicket findById(Long id) throws Exception;
-	public RTTicketHistory findHistory(Long id) throws Exception;
+	public RTTicket getTicket(long id) throws Exception;
+	public RTTicketHistory getHistory(long id) throws Exception;
 	public List<RTTicketHistory> findHistory(RTTicket ticket) throws Exception;
-	public RTTicketAttachment findAttachment(Long id) throws Exception;
+	public List<RTTicketHistory> findHistory(long ticketId) throws Exception;
+	public RTTicketAttachment findAttachment(long id) throws Exception;
 	public List<RTTicketAttachment> findAttachment(RTTicket ticket) throws Exception;
-	public RTTicketUser findUser(Long id) throws Exception;
+	public RTTicketUser findUser(long id) throws Exception;
 	public RTTicketUser findUser(String username) throws Exception; //TODO testing
 	public List<RTTicket> findByQuery(String query) throws Exception;
 	public List<RTTicket> findByQuery(String query, String orderby) throws Exception;
