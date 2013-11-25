@@ -15,7 +15,9 @@
  */
 package de.boksa.rt.rest;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +29,13 @@ import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.apache.http.message.BasicNameValuePair;
+import org.apache.log4j.Logger;
 
 import de.boksa.rt.model.RTTicket;
 
 public abstract class RTRESTClient {
+    
+    private static final Logger logger = Logger.getLogger(RTRESTClient.class);
 
 	public enum TicketSearchResponseFormat {
 		IDONLY("i"), IDANDSUBJECT("s"), MULTILINE("l");
@@ -46,7 +51,7 @@ public abstract class RTRESTClient {
 		}
 	}
 
-	protected static final Pattern PATTERN_RESPONSE_BODY = Pattern.compile("^(.*) (\\d+) (.*)\n((.*\n)*)", Pattern.MULTILINE);
+	protected static final Pattern PATTERN_RESPONSE_HEADER = Pattern.compile("^RT/(.+) (\\d+) (.+)$");
 	protected static final String NO_MATCHING_RESULTS = "No matching results";
 
 	private String restInterfaceBaseURL;
@@ -186,31 +191,39 @@ public abstract class RTRESTClient {
 		request.body(postEntity);
 
 		String responseBody = this.getRequestExecutor().execute(request).returnContent().asString();
-
-		Matcher matcher = PATTERN_RESPONSE_BODY.matcher(responseBody);
-
-		RTRESTResponse response = new RTRESTResponse();
+		
+		if (logger.isDebugEnabled()) {
+		    logger.debug("RAW REST RESPONSE:\n" + responseBody);
+		}
+		
+        RTRESTResponse response = new RTRESTResponse();
+        BufferedReader reader = new BufferedReader(new StringReader(responseBody));
+		String line = reader.readLine();
+		
+		Matcher matcher = PATTERN_RESPONSE_HEADER.matcher(line);
 		if (matcher.matches()) {
-			String body = matcher.group(4).trim();
-			// Check if response is 'No matching results'
-			if (body.startsWith(NO_MATCHING_RESULTS)) {
-				// Signal upper layers of no records are available by setting
-				// response code to -1 and body to actual response from
-				// endpoint
-				response.setStatusCode(-1l);
-				response.setStatusMessage(matcher.group(4).trim());
-				return response;
-			}
-			response.setVersion(matcher.group(1));
-			response.setStatusCode(Long.valueOf(matcher.group(2)));
-			response.setStatusMessage(matcher.group(3));
-			response.setBody(body);
+            response.setVersion(matcher.group(1));
+            response.setStatusCode(Long.valueOf(matcher.group(2)));
+            response.setStatusMessage(matcher.group(3));
+
+            reader.readLine(); // skip newline after header
+            
+		    StringBuilder body = new StringBuilder();
+		    line = reader.readLine();
+		    if (line != null) {
+		        body.append(line);
+		        while ((line = reader.readLine()) != null) {
+		            body.append("\n");
+		            body.append(line);
+		        }
+		    }
+			response.setBody(body.toString());
 			return response;
 		} else {
-			// Pattern didn't match - signal upper layers by setting response
-			// code to -1
+			// Something went wrong, unexpected response header;
+		    // signal upper layers by setting response code to -1
 			response.setStatusCode(-1l);
-			response.setStatusMessage("Response body contents - no match");
+			response.setStatusMessage("Unexpected response: " + line);
 		}
 		return response;
 	}
