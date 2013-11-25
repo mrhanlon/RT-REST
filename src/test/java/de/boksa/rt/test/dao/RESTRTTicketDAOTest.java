@@ -18,6 +18,7 @@ package de.boksa.rt.test.dao;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -29,41 +30,43 @@ import de.boksa.rt.model.RTTicket;
 
 public class RESTRTTicketDAOTest {
 
-	// use Commons Logging
-	private static final Log LOG = LogFactory.getLog(RESTRTTicketDAOTest.class);
+    // use Commons Logging
+    private static final Log LOG = LogFactory.getLog(RESTRTTicketDAOTest.class);
 
-	// this is a RT Query Builder query
-	private static final String RTQBQ_ALL_FROM_CUSTOMER_SERVICE = "Queue = 'Customer Service'";
+    // this is a RT Query Builder query
+    private static final String RTQBQ_ALL_FROM_CUSTOMER_SERVICE = "Queue = 'Customer Service'";
 
-	// this is rather a demo than a test ;-)
-	@Test
-	public void demo() {
-		// we use a Map to hold the factory parameters to have a common signature for the factory method
-		Map<String,Object> factoryParameters = new HashMap<String,Object>();
+    private RTTicketDAO getDao() {
+        ResourceBundle bundle = ResourceBundle.getBundle("test");
+        Map<String, Object> factoryParameters = new HashMap<String, Object>();
+        factoryParameters.put(RESTRTDAOFactory.REST_INTERFACE_BASE_URL, bundle.getString("baseUrl"));
+        factoryParameters.put(RESTRTDAOFactory.REST_INTERFACE_USERNAME, bundle.getString("user"));
+        factoryParameters.put(RESTRTDAOFactory.REST_INTERFACE_PASSWORD, bundle.getString("pass"));
 
-		// for the credentials used see http://requesttracker.wikia.com/wiki/Demo
-		LOG.debug("Setting credentials to access the RT demo installation");
-		factoryParameters.put(RESTRTDAOFactory.REST_INTERFACE_BASE_URL, "http://rt.easter-eggs.org/demos/stable/REST/1.0/");
-		factoryParameters.put(RESTRTDAOFactory.REST_INTERFACE_USERNAME, "john.foo");
-		factoryParameters.put(RESTRTDAOFactory.REST_INTERFACE_PASSWORD, "john.foo");
+        return RESTRTDAOFactory.getInstance().getRTTicketDAO(factoryParameters);
+    }
 
-		LOG.debug("Creating the RTTicketDAO");
-		RTTicketDAO dao = RESTRTDAOFactory.getInstance().getRTTicketDAO(factoryParameters);
+    // this is rather a demo than a test ;-)
+    @Test
+    public void demo() throws Exception {
+        RTTicketDAO dao = getDao();
 
-		// Strictly following the J2EE DAO Pattern that would be:
-		// RTTicketDAO dao = RTDAOFactory.getRTDAOFactory(RTDAOFactoryType.REST).getRTTicketDAO(factoryParameters);
+        LOG.debug("Running the RT Query Builder query and parsing the results");
+        List<RTTicket> result = dao.findByQuery(RTQBQ_ALL_FROM_CUSTOMER_SERVICE);
 
-		try {
-			LOG.debug("Running the RT Query Builder query and parsing the results");
-			List<RTTicket> result = dao.findByQuery(RTQBQ_ALL_FROM_CUSTOMER_SERVICE);
+        LOG.debug("Iterating over the resulting POJOs");
+        for (RTTicket ticket : result) {
+            LOG.debug("   Found ticket: " + ticket.getId() + ", " + ticket.getSubject());
+        }
+    }
 
-			LOG.debug("Iterating over the resulting POJOs");
-			for (RTTicket ticket : result) {
-				LOG.debug("   Found ticket: " + ticket.getId() + ", " + ticket.getSubject());
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
+    @Test
+    public void ticketById() throws Exception {
+        RTTicketDAO dao = getDao();
+        
+        RTTicket ticket = dao.getTicket(33);
+        LOG.debug(ticket.toString());
+
+    }
 
 }

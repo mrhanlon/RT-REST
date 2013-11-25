@@ -16,6 +16,7 @@
 package de.boksa.rt.test.rest;
 
 import java.io.IOException;
+import java.util.ResourceBundle;
 
 import junit.framework.Assert;
 
@@ -28,7 +29,9 @@ import de.boksa.rt.rest.RTRESTResponse;
 public class RTAuthClientTest {
 	
 	public RTAuthClient getClient() {
-		return new RTAuthClient("http://rt.easter-eggs.org/demos/stable/REST/1.0/", "john.foo", "john.foo");
+	    ResourceBundle bundle = ResourceBundle.getBundle("test");
+	    
+		return new RTAuthClient(bundle.getString("baseUrl"), bundle.getString("user"), bundle.getString("pass"));
 	}
 	
 	@Test

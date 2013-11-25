@@ -16,6 +16,7 @@
 package de.boksa.rt.dao;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +25,7 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.commons.beanutils.ConvertUtils;
+import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
 
 import de.boksa.rt.model.RTTicket;
@@ -37,220 +39,221 @@ import de.boksa.rt.rest.response.parser.customconverters.StringToDateTimeConvert
 
 public class RESTRTTicketDAO implements RTTicketDAO {
 
-	private RTRESTClient client;
-	private StringToDateTimeConverter dateConverter;
+    private static final Logger logger = Logger.getLogger(RESTRTTicketDAO.class);
 
-	protected RESTRTTicketDAO() {
-		ConvertUtils.deregister(DateTime.class);
-		dateConverter = new StringToDateTimeConverter();
-		ConvertUtils.register(dateConverter, DateTime.class);
-	}
+    private RTRESTClient client;
+    private StringToDateTimeConverter dateConverter;
 
-	@Override
-	public boolean createNewTicket(RTTicket ticket, String text) throws Exception {
-		Pattern PATTERN_TICKET_CREATED = Pattern.compile("^# Ticket (\\d+) created.$");
-		client.login();
-		RTRESTResponse response = client.newTicket(ticket, text);
-		client.logout();
+    protected RESTRTTicketDAO() {
+        ConvertUtils.deregister(DateTime.class);
+        dateConverter = new StringToDateTimeConverter();
+        ConvertUtils.register(dateConverter, DateTime.class);
+    }
 
-		Matcher m = PATTERN_TICKET_CREATED.matcher(response.getBody().trim());
-		if (response.getStatusCode() == 200l && m.matches()) {
-			long ticketId = Long.valueOf(m.group(1));
-			ticket.setId(ticketId);
-			return true;
-		} else {
-			return false;
-		}
-	}
+    @Override
+    public boolean createNewTicket(RTTicket ticket, String text) throws Exception {
+        Pattern PATTERN_TICKET_CREATED = Pattern.compile("^# Ticket (\\d+) created.$");
+        client.login();
+        RTRESTResponse response = client.newTicket(ticket, text);
+        client.logout();
 
-	@Override
-	public RTTicket getTicket(long ticketId) throws Exception {
-		client.login();
-		RTRESTResponse response = client.getTicket(ticketId);
-		client.logout();
-		RTParser parser = RTParser.getInstance();
+        Matcher m = PATTERN_TICKET_CREATED.matcher(response.getBody().trim());
+        if (response.getStatusCode() == 200l && m.matches()) {
+            long ticketId = Long.valueOf(m.group(1));
+            ticket.setId(ticketId);
+            return true;
+        } else {
+            return false;
+        }
+    }
 
-		if (parser != null) {
-			if (response.getStatusCode() == 200l) {
-				List<Map<String, String>> attributes = parser.parseResponse(response);
-				RTTicket ticket = new RTTicket();
-				ticket.populate(attributes.get(0));
-				//The parser doesn't parse out the ticket id properly bc RT is dumb and also I'm lazy
-				ticket.setId(ticketId);
-				return ticket;
-			} else {
-				// returning an empty ticket or null?
-				return new RTTicket();
-			}
-		} else {
-			throw new UnsupportedOperationException("Could not create parser for response format.");
-		}
-	}
+    @Override
+    public RTTicket getTicket(long ticketId) throws Exception {
+        client.login();
+        RTRESTResponse response = client.getTicket(ticketId);
+        client.logout();
 
-	@Override
-	public RTTicketHistory getHistory(long history_id) throws IOException {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+        return getTicket(response);
+    }
 
-	@Override
-	public List<RTTicketHistory> findHistory(RTTicket ticket) throws Exception {
-		client.login();
-		RTRESTResponse response = client.getTicket(ticket.getId(), "history?format=l");
-		client.logout();
-		RTParser parser = RTParser.getInstance();
+    private RTTicket getTicket(RTRESTResponse response) throws InvocationTargetException, IllegalAccessException {
+        RTParser parser = RTParser.getInstance();
+        if (response.getStatusCode() == 200l) {
+            List<Map<String, String>> attributes = parser.parseResponse(response);
+            RTTicket ticket = new RTTicket();
+            if (attributes.size() > 0) {
+                Map<String, String> parameters = attributes.get(0);
+                // RT returns ticket id as "ticket/#".  Remove the "ticket/" prefix.
+                String id = parameters.get("id");
+                if (id != null) {
+                    parameters.put("id", id.replace("ticket/", ""));
+                }
+                ticket.populate(parameters);
+            }
+            return ticket;
+        } else {
+            return null;
+        }
+    }
 
-		if (parser != null) {
-			if (response.getStatusCode() == 200l) {
-				List<Map<String, String>> attributes = parser.parseResponse(response);
-				List<RTTicketHistory> historyList = new ArrayList<RTTicketHistory>();
-				for (Map<String, String> historyAttribute : attributes) {
-					RTTicketHistory history = new RTTicketHistory();
-					history.populate(historyAttribute);
-					historyList.add(history);
-				}
-				return historyList;
-			} else {
-				return new ArrayList<RTTicketHistory>();
-			}
-		} else {
-			throw new UnsupportedOperationException("Could not create parser for response format.");
-		}
-	}
+    @Override
+    public RTTicketHistory getHistory(long history_id) throws IOException {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public List<RTTicketHistory> findHistory(long ticketId) throws Exception {
-		client.login();
-		RTRESTResponse response = client.getTicket(ticketId, "history?format=l");
-		client.logout();
-		RTParser parser = RTParser.getInstance();
+    @Override
+    public List<RTTicketHistory> findHistory(RTTicket ticket) throws Exception {
+        client.login();
+        RTRESTResponse response = client.getTicket(ticket.getId(), "history?format=l");
+        client.logout();
 
-		if (parser != null) {
-			if (response.getStatusCode() == 200l) {
-				List<Map<String, String>> attributes = parser.parseResponse(response);
-				List<RTTicketHistory> historyList = new ArrayList<RTTicketHistory>();
-				for (Map<String, String> historyAttribute : attributes) {
-					RTTicketHistory history = new RTTicketHistory();
-					history.populate(historyAttribute);
-					historyList.add(history);
-				}
-				return historyList;
-			} else {
-				return new ArrayList<RTTicketHistory>();
-			}
-		} else {
-			throw new UnsupportedOperationException("Could not create parser for response format.");
-		}
-	}
+        if (response.getStatusCode() == 200l) {
+            RTParser parser = RTParser.getInstance();
+            List<Map<String, String>> attributes = parser.parseResponse(response);
+            List<RTTicketHistory> historyList = new ArrayList<RTTicketHistory>();
+            for (Map<String, String> historyAttribute : attributes) {
+                RTTicketHistory history = new RTTicketHistory();
+                history.populate(historyAttribute);
+                historyList.add(history);
+            }
+            return historyList;
+        } else {
+            return new ArrayList<RTTicketHistory>();
+        }
+    }
 
-	@Override
-	public RTTicketAttachment findAttachment(long attachment_id) throws IOException {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public List<RTTicketHistory> findHistory(long ticketId) throws Exception {
+        client.login();
+        RTRESTResponse response = client.getTicket(ticketId, "history?format=l");
+        client.logout();
 
-	@Override
-	public List<RTTicketAttachment> findAttachment(RTTicket ticket) throws IOException {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+        if (response.getStatusCode() == 200l) {
+            RTParser parser = RTParser.getInstance();
+            List<Map<String, String>> attributes = parser.parseResponse(response);
+            List<RTTicketHistory> historyList = new ArrayList<RTTicketHistory>();
+            for (Map<String, String> historyAttribute : attributes) {
+                RTTicketHistory history = new RTTicketHistory();
+                history.populate(historyAttribute);
+                historyList.add(history);
+            }
+            return historyList;
+        } else {
+            return new ArrayList<RTTicketHistory>();
+        }
+    }
 
-	@Override
-	public RTTicketUser findUser(long user_id) throws IOException {
-		throw new UnsupportedOperationException("Not implemented");
-	}
+    @Override
+    public RTTicketAttachment findAttachment(long attachment_id) throws IOException {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public RTTicketUser findUser(String username) throws Exception {
-		client.login();
-		RTRESTResponse response = client.getUser(username);
-		client.logout();
-		RTParser parser = RTParser.getInstance();
+    @Override
+    public List<RTTicketAttachment> findAttachment(RTTicket ticket) throws IOException {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-		if (parser != null) {
-			if (response.getStatusCode() == 200l) {
-				RTTicketUser user = new RTTicketUser();
-				List<Map<String, String>> attributes = parser.parseResponse(response);
-				for (Map<String, String> attribute : attributes) {
-					BeanUtils.populate(user, attribute);
-				}
-				return user;
-			} else {
-				// No matches were found...just return an empty user instead of bombing out like a dumb
-				return new RTTicketUser();
-			}
-		} else {
-			throw new UnsupportedOperationException("Could not create parser for response format.");
-		}
-	}
+    @Override
+    public RTTicketUser findUser(long user_id) throws IOException {
+        throw new UnsupportedOperationException("Not implemented");
+    }
 
-	@Override
-	public List<RTTicket> findByQuery(String query) throws Exception {
-		return this.findByQuery(query, null);
-	}
+    @Override
+    public RTTicketUser findUser(String username) throws Exception {
+        client.login();
+        RTRESTResponse response = client.getUser(username);
+        client.logout();
 
-	@Override
-	//TODO refactor to return an actual ticket...have to do findById
-	public List<RTTicket> findByQuery(String query, String orderby) throws Exception {
-		client.login();
-		RTRESTResponse response = client.searchTickets(query, orderby);
-		client.logout();
-		RTParser parser = RTParser.getInstance();
+        if (response.getStatusCode() == 200l) {
+            RTParser parser = RTParser.getInstance();
+            RTTicketUser user = new RTTicketUser();
+            List<Map<String, String>> attributes = parser.parseResponse(response);
+            for (Map<String, String> attribute : attributes) {
+                BeanUtils.populate(user, attribute);
+            }
+            return user;
+        } else {
+            // No matches were found...just return an empty user instead of
+            // bombing out like a dumb
+            return new RTTicketUser();
+        }
+    }
 
-		if (parser != null) {
-			if (response.getStatusCode() == 200l) {
-				List<Map<String, String>> parsedResponse = parser.parseResponse(response);
-				List<RTTicket> tickets = new ArrayList<RTTicket>();
+    @Override
+    public List<RTTicket> findByQuery(String query) throws Exception {
+        return this.findByQuery(query, null);
+    }
 
-				for (Map<String, String> ticketData : parsedResponse) {
-					for (String ticketId : ticketData.keySet()) {
-						tickets.add(getTicket(Long.valueOf(ticketId)));
-					}
-				}
+    @Override
+    public List<RTTicket> findByQuery(String query, String orderby) throws IOException {
+        client.login();
+        List<RTTicket> tickets = new ArrayList<RTTicket>();
+        
+        try {
+            RTRESTResponse response = client.searchTickets(query, orderby);
+            if (response.getStatusCode() == 200l) {
+                RTParser parser = RTParser.getInstance();
+                List<Map<String, String>> parsedResponse = parser.parseResponse(response);
+                
+                for (Map<String, String> ticketData : parsedResponse) {
+                    for (String ticketId : ticketData.keySet()) {
+                        RTRESTResponse ticketResp = client.getTicket(Long.valueOf(ticketId));
+                        RTTicket ticket = getTicket(ticketResp);
+                        if (ticket != null) {
+                            tickets.add(ticket);
+                        } else {
+                            logger.warn("unable to lookup ticket for id: " + ticketId);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            logger.error(e);
+        } catch (InvocationTargetException e) {
+            logger.error(e);
+        } catch (IllegalAccessException e) {
+            logger.error(e);
+        } finally {
+            client.logout();
+        }
+        return tickets;
+    }
 
-				return tickets;
-			} else {
-				// No matches were found...just return an empty list instead of bombing out like a dumb
-				return new ArrayList<RTTicket>();
-			}
-		} else {
-			throw new UnsupportedOperationException("Could not create parser for response format.");
-		}
-	}
+    // getter and setter methods...
+    public RTRESTClient getClient() {
+        return client;
+    }
 
-	// getter and setter methods...
-	public RTRESTClient getClient() {
-		return client;
-	}
-	public void setClient(RTRESTClient client) {
-		this.client = client;
-	}
+    public void setClient(RTRESTClient client) {
+        this.client = client;
+    }
 
-	/** This actually probably isn't necessary for our purposes but here it is **/
-	@Override
-	public boolean editTicket(RTTicket ticket, Map<String, String> parameters)
-			throws Exception {
-		client.login();
-		RTRESTResponse response = client.editTicket(ticket, parameters);
-		client.logout();
+    /** This actually probably isn't necessary for our purposes but here it is **/
+    @Override
+    public boolean editTicket(RTTicket ticket, Map<String, String> parameters) throws Exception {
+        client.login();
+        RTRESTResponse response = client.editTicket(ticket, parameters);
+        client.logout();
 
-		if (response.getStatusCode() == 200l) {
-			return true;
-		} else {
-			// failed!!
-			return false;
-		}
-	}
+        if (response.getStatusCode() == 200l) {
+            return true;
+        } else {
+            // failed!!
+            return false;
+        }
+    }
 
-	@Override
-	public boolean commentOnTicket(RTTicket ticket, Map<String, String> parameters)
-			throws Exception {
-		client.login();
-		RTRESTResponse response = client.commentOnTicket(ticket, parameters);
-		client.logout();
+    @Override
+    public boolean commentOnTicket(RTTicket ticket, Map<String, String> parameters) throws Exception {
+        client.login();
+        RTRESTResponse response = client.commentOnTicket(ticket, parameters);
+        client.logout();
 
-		if (response.getStatusCode() == 200l) {
-			return true;
-		} else {
-			// failed!!
-			return false;
-		}
-	}
+        if (response.getStatusCode() == 200l) {
+            return true;
+        } else {
+            // failed!!
+            return false;
+        }
+    }
 }
