@@ -34,6 +34,7 @@ import de.boksa.rt.model.RTTicketHistory;
 import de.boksa.rt.model.RTTicketUser;
 import de.boksa.rt.rest.RTRESTClient;
 import de.boksa.rt.rest.RTRESTResponse;
+import de.boksa.rt.rest.RTRESTClient.TicketSearchResponseFormat;
 import de.boksa.rt.rest.response.parser.RTParser;
 import de.boksa.rt.rest.response.parser.customconverters.StringToDateTimeConverter;
 
@@ -73,27 +74,26 @@ public class RESTRTTicketDAO implements RTTicketDAO {
         RTRESTResponse response = client.getTicket(ticketId);
         client.logout();
 
-        return getTicket(response);
+        if (response.getStatusCode().equals(200l)) {
+            RTParser parser = RTParser.getInstance();
+            List<Map<String,String>> ticketData = parser.parseResponse(response);
+            if (ticketData.size() > 0) {
+                return getTicket(ticketData.get(0));
+            }
+        }
+        return null;
     }
 
-    private RTTicket getTicket(RTRESTResponse response) throws InvocationTargetException, IllegalAccessException {
-        RTParser parser = RTParser.getInstance();
-        if (response.getStatusCode() == 200l) {
-            List<Map<String, String>> attributes = parser.parseResponse(response);
-            RTTicket ticket = new RTTicket();
-            if (attributes.size() > 0) {
-                Map<String, String> parameters = attributes.get(0);
-                // RT returns ticket id as "ticket/#".  Remove the "ticket/" prefix.
-                String id = parameters.get("id");
-                if (id != null) {
-                    parameters.put("id", id.replace("ticket/", ""));
-                }
-                ticket.populate(parameters);
-            }
-            return ticket;
-        } else {
-            return null;
+    private RTTicket getTicket(Map<String, String> ticketData) throws InvocationTargetException, IllegalAccessException {
+        // RT returns ticket id as "ticket/#".  Remove the "ticket/" prefix.
+        String id = ticketData.get("id");
+        if (id != null) {
+            ticketData.put("id", id.replace("ticket/", ""));
         }
+        
+        RTTicket ticket = new RTTicket();
+        ticket.populate(ticketData);
+        return ticket;
     }
 
     @Override
@@ -181,30 +181,27 @@ public class RESTRTTicketDAO implements RTTicketDAO {
 
     @Override
     public List<RTTicket> findByQuery(String query) throws Exception {
-        return this.findByQuery(query, null);
+        return this.findByQuery(query, null, TicketSearchResponseFormat.MULTILINE);
     }
 
     @Override
-    public List<RTTicket> findByQuery(String query, String orderby) throws IOException {
+    public List<RTTicket> findByQuery(String query, String orderBy) throws Exception {
+        return this.findByQuery(query, orderBy, TicketSearchResponseFormat.MULTILINE);
+    }
+
+    @Override
+    public List<RTTicket> findByQuery(String query, String orderBy, TicketSearchResponseFormat format) throws IOException {
         client.login();
         List<RTTicket> tickets = new ArrayList<RTTicket>();
         
         try {
-            RTRESTResponse response = client.searchTickets(query, orderby);
+            RTRESTResponse response = client.searchTickets(query, orderBy, format);
             if (response.getStatusCode() == 200l) {
                 RTParser parser = RTParser.getInstance();
                 List<Map<String, String>> parsedResponse = parser.parseResponse(response);
-                
                 for (Map<String, String> ticketData : parsedResponse) {
-                    for (String ticketId : ticketData.keySet()) {
-                        RTRESTResponse ticketResp = client.getTicket(Long.valueOf(ticketId));
-                        RTTicket ticket = getTicket(ticketResp);
-                        if (ticket != null) {
-                            tickets.add(ticket);
-                        } else {
-                            logger.warn("unable to lookup ticket for id: " + ticketId);
-                        }
-                    }
+                    RTTicket ticket = getTicket(ticketData);
+                    tickets.add(ticket);
                 }
             }
         } catch (IOException e) {

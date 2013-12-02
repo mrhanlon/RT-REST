@@ -22,6 +22,7 @@ import de.boksa.rt.model.RTTicket;
 import de.boksa.rt.model.RTTicketAttachment;
 import de.boksa.rt.model.RTTicketHistory;
 import de.boksa.rt.model.RTTicketUser;
+import de.boksa.rt.rest.RTRESTClient.TicketSearchResponseFormat;
 
 public interface RTTicketDAO {
 
@@ -35,7 +36,8 @@ public interface RTTicketDAO {
 	public RTTicketUser findUser(long id) throws Exception;
 	public RTTicketUser findUser(String username) throws Exception; //TODO testing
 	public List<RTTicket> findByQuery(String query) throws Exception;
-	public List<RTTicket> findByQuery(String query, String orderby) throws Exception;
+    public List<RTTicket> findByQuery(String query, String orderby) throws Exception;
+    public List<RTTicket> findByQuery(String query, String orderby, TicketSearchResponseFormat format) throws Exception;
 	public boolean editTicket(RTTicket ticket, Map<String, String> parameters) throws Exception;
 	public boolean commentOnTicket(RTTicket ticket, Map<String, String> parameters) throws Exception;
 	

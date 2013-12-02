@@ -68,5 +68,13 @@ public class RESTRTTicketDAOTest {
         LOG.debug(ticket.toString());
 
     }
+    
+    @Test
+    public void search() throws Exception {
+        RTTicketDAO dao = getDao();
+        
+        List<RTTicket> tickets = dao.findByQuery("Subject LIKE 'testing'");
+        LOG.debug(tickets.size());
+    }
 
 }

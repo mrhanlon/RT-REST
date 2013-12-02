@@ -52,7 +52,7 @@ public abstract class RTRESTClient {
 	}
 
 	protected static final Pattern PATTERN_RESPONSE_HEADER = Pattern.compile("^RT/(.+) (\\d+) (.+)$");
-	protected static final String NO_MATCHING_RESULTS = "No matching results";
+	protected static final String NO_MATCHING_RESULTS = "No matching results.";
 
 	private String restInterfaceBaseURL;
 	private String username;
@@ -210,12 +210,14 @@ public abstract class RTRESTClient {
             
 		    StringBuilder body = new StringBuilder();
 		    line = reader.readLine();
-		    if (line != null) {
+		    if (line != null && ! line.equals(NO_MATCHING_RESULTS)) {
 		        body.append(line);
 		        while ((line = reader.readLine()) != null) {
 		            body.append("\n");
 		            body.append(line);
 		        }
+		    } else {
+		        response.setStatusCode(-1l);
 		    }
 			response.setBody(body.toString());
 			return response;
