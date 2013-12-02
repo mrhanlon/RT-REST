@@ -197,11 +197,13 @@ public class RESTRTTicketDAO implements RTTicketDAO {
         try {
             RTRESTResponse response = client.searchTickets(query, orderBy, format);
             if (response.getStatusCode() == 200l) {
-                RTParser parser = RTParser.getInstance();
-                List<Map<String, String>> parsedResponse = parser.parseResponse(response);
-                for (Map<String, String> ticketData : parsedResponse) {
-                    RTTicket ticket = getTicket(ticketData);
-                    tickets.add(ticket);
+                if (response.getBody().length() > 0) {
+                    RTParser parser = RTParser.getInstance();
+                    List<Map<String, String>> parsedResponse = parser.parseResponse(response);
+                    for (Map<String, String> ticketData : parsedResponse) {
+                        RTTicket ticket = getTicket(ticketData);
+                        tickets.add(ticket);
+                    }
                 }
             }
         } catch (IOException e) {

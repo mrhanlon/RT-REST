@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import junit.framework.Assert;
+
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.Test;
@@ -73,8 +75,18 @@ public class RESTRTTicketDAOTest {
     public void search() throws Exception {
         RTTicketDAO dao = getDao();
         
-        List<RTTicket> tickets = dao.findByQuery("Subject LIKE 'testing'");
-        LOG.debug(tickets.size());
+        List<RTTicket> tickets = dao.findByQuery("Subject LIKE 'test'");
+        
+        Assert.assertTrue("Search returned results", tickets.size() > 0);
+    }
+    
+    @Test
+    public void searchNoResults() throws Exception {
+        RTTicketDAO dao = getDao();
+        
+        List<RTTicket> tickets = dao.findByQuery("Subject LIKE 'asdfasdfasdfsasdfsda'");
+        
+        Assert.assertTrue("Search returned no results", tickets.size() == 0);
     }
 
 }
