@@ -216,8 +216,6 @@ public abstract class RTRESTClient {
 		            body.append("\n");
 		            body.append(line);
 		        }
-		    } else {
-		        response.setStatusCode(-1l);
 		    }
 			response.setBody(body.toString());
 			return response;
