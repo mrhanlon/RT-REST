@@ -29,6 +29,7 @@ import org.junit.Test;
 import de.boksa.rt.dao.RESTRTDAOFactory;
 import de.boksa.rt.dao.RTTicketDAO;
 import de.boksa.rt.model.RTTicket;
+import de.boksa.rt.model.RTTicketHistory;
 
 public class RESTRTTicketDAOTest {
 
@@ -66,9 +67,18 @@ public class RESTRTTicketDAOTest {
     public void ticketById() throws Exception {
         RTTicketDAO dao = getDao();
         
-        RTTicket ticket = dao.getTicket(33);
-        LOG.debug(ticket.toString());
+        RTTicket ticket = dao.getTicket(34);
+        
+        Assert.assertEquals(ticket.getId().longValue(), 34l);
+    }
 
+    @Test
+    public void ticketHistory() throws Exception {
+        RTTicketDAO dao = getDao();
+        
+        List<RTTicketHistory> history = dao.findHistory(34);
+        LOG.debug(history);
+//        Assert.assertEquals(ticket.getId().longValue(), 33l);
     }
     
     @Test

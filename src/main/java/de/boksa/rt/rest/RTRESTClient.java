@@ -136,14 +136,40 @@ public abstract class RTRESTClient {
 	public RTRESTResponse commentOnTicket(RTTicket ticket, Map<String, String> parameters) throws IOException {
 		String url = "ticket/" + ticket.getId() + "/comment";
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
-		String content = "id: " + ticket.getId() + "\nAction: " + parameters.get("action") + "\nText: "
-				+ parameters.get("text") + "\nAttachment: " + ""; // TODO
-
-		if (parameters.get("action").equals("correspond")) {
-			content += "\nCc: " + parameters.get("cc") + "\nBcc: " + parameters.get("bcc") + "\nTimeWorked: "
-					+ parameters.get("timeworked");
+		StringBuilder content = new StringBuilder();
+		content.append("id: ");
+		content.append(ticket.getId());
+		
+		content.append("\nAction: ");
+		content.append(parameters.get("action"));
+		
+		content.append("\nText: ");
+		// multiline text must start with a space before each line
+		String text = parameters.get("text");
+		if (text != null) {
+        	String[] lines = text.split("\n");
+        	content.append(lines[0]);
+        	for (int i = 1; i < lines.length; i++) {
+    	        content.append("\n  ");
+    		    content.append(lines[i]);
+    		}
 		}
-		params.add(new BasicNameValuePair("content", content));
+		
+		content.append("\nAttachment: ");
+		//TODO handle attachments?
+		
+		if (parameters.get("action").equals("correspond")) {
+		    content.append("\nCc: ");
+            content.append(parameters.get("cc"));
+
+            content.append("\nBcc: ");
+            content.append(parameters.get("bcc"));
+
+            content.append("\nTimeWorked: ");
+            content.append(parameters.get("timeworked"));
+		}
+		
+		params.add(new BasicNameValuePair("content", content.toString()));
 
 		return this.getResponse(url, params);
 	}
