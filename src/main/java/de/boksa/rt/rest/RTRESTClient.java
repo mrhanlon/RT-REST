@@ -127,8 +127,20 @@ public abstract class RTRESTClient {
 		String url = "ticket/new";
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
-		String content = ticket.getNewTicketParams() + "\ntext: " + text;
-		params.add(new BasicNameValuePair("content", content));
+		StringBuilder content = new StringBuilder(ticket.getNewTicketParams());
+		
+		// multiline text must start with a space before each line
+        if (text != null) {
+            content.append("\ntext: ");
+            String[] lines = text.split("\n");
+            content.append(lines[0]);
+            for (int i = 1; i < lines.length; i++) {
+                content.append("\n\t");
+                content.append(lines[i]);
+            }
+        }
+		
+		params.add(new BasicNameValuePair("content", content.toString()));
 
 		return this.getResponse(url, params);
 	}
@@ -150,7 +162,7 @@ public abstract class RTRESTClient {
         	String[] lines = text.split("\n");
         	content.append(lines[0]);
         	for (int i = 1; i < lines.length; i++) {
-    	        content.append("\n  ");
+    	        content.append("\n\t");
     		    content.append(lines[i]);
     		}
 		}
@@ -178,13 +190,18 @@ public abstract class RTRESTClient {
 		String url = "ticket/" + ticket.getId() + "/edit";
 
 		List<NameValuePair> params = new ArrayList<NameValuePair>();
-		String content = "";
+		StringBuilder content = new StringBuilder();
 
 		for (String key : updatedValues.keySet()) {
-			content += key + ": " + updatedValues.get(key);
+		    if (content.length() > 0) {
+		        content.append("\n");
+		    }
+			content.append(key);
+			content.append(": ");
+			content.append(updatedValues.get(key));
 		}
 
-		params.add(new BasicNameValuePair("content", content));
+		params.add(new BasicNameValuePair("content", content.toString()));
 
 		return this.getResponse(url, params);
 	}

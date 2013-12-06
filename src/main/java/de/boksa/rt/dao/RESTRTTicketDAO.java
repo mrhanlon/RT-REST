@@ -53,19 +53,21 @@ public class RESTRTTicketDAO implements RTTicketDAO {
 
     @Override
     public boolean createNewTicket(RTTicket ticket, String text) throws Exception {
-        Pattern PATTERN_TICKET_CREATED = Pattern.compile("^# Ticket (\\d+) created.$");
         client.login();
         RTRESTResponse response = client.newTicket(ticket, text);
         client.logout();
 
-        Matcher m = PATTERN_TICKET_CREATED.matcher(response.getBody().trim());
-        if (response.getStatusCode() == 200l && m.matches()) {
-            long ticketId = Long.valueOf(m.group(1));
-            ticket.setId(ticketId);
-            return true;
-        } else {
-            return false;
+        if (response.getStatusCode() == 200l) {
+            Pattern PATTERN_TICKET_CREATED = Pattern.compile("^# Ticket (\\d+) created.$");
+            Matcher m = PATTERN_TICKET_CREATED.matcher(response.getBody().trim());
+            if (m.matches()) {
+                long ticketId = Long.valueOf(m.group(1));
+                ticket.setId(ticketId);
+                return true;
+            }
         }
+        
+        return false;
     }
 
     @Override

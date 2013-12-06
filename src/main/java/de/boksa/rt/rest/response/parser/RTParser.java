@@ -53,27 +53,38 @@ public class RTParser {
 		List<Map<String, String>> resultData = new LinkedList<Map<String, String>>();
 
 		String fieldName = null;
-		StringBuilder tmp = new StringBuilder();
+		StringBuilder fieldContent = new StringBuilder();
 		for (String responseLine : responseBody.split(DELIMITER_LINES)) {
 			Matcher m = PATTERN_START_FIELD.matcher(responseLine);
 			if (m.matches()) {
+			    // found a field
 				if (fieldName != null) {
-					if (COMMENT_LINE.matcher(tmp.toString()).matches()) {
-						String id = tmp.toString().replaceAll("#.*\\(.*\\)", "");
-						tmp.setLength(0);
-						tmp.append(id);
+				    // had matched a previous field, clear the queue
+				    String content = fieldContent.toString();
+				    
+					if (COMMENT_LINE.matcher(content).matches()) {
+					    // TODO does this ever hit?
+						content = content.replaceAll("#.*\\(.*\\)", "");
 					}
-					responseData.put(WordUtils.uncapitalize(fieldName), tmp.toString().replaceFirst("<br />$", ""));
-					tmp.setLength(0);
+					
+					// remove leading/trailing newlines
+					if (content.startsWith("\n") || content.endsWith("\n")) {
+					    content = content.replaceFirst("^\n+", "").replaceFirst("\n+$", "");
+					}
+					
+					responseData.put(WordUtils.uncapitalize(fieldName), content);
+					
 				}
-
+				fieldContent.setLength(0);
+				
 				fieldName = m.group(1);
-				tmp.append(m.group(2));
+				fieldContent.append(m.group(2));
 			} else {
-				tmp.append(responseLine + "<br />");
+			    // multiline field content
+				fieldContent.append("\n" + responseLine.trim());
 			}
 		}
-		responseData.put(WordUtils.uncapitalize(fieldName), tmp.toString());
+		responseData.put(WordUtils.uncapitalize(fieldName), fieldContent.toString());
 		resultData.add(responseData);
 		return resultData;
 	}

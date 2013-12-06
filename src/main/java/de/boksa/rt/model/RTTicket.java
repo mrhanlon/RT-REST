@@ -223,46 +223,46 @@ public class RTTicket extends RTTicketAbstractObject implements RTCustomFieldObj
 	public String toString() {
 
 		return "RTTicket [id=" + id
-			+ ", queue=" + queue
-			+ ", owner=" + owner
-			+ ", creator=" + creator
-			+ ", subject=" + subject
-			+ ", status=" + status
-			+ ", priority=" + priority
-			+ ", initialPriority=" + initialPriority
-			+ ", finalPriority=" + finalPriority
-			+ ", requestors=" + requestors
-			+ ", cc=" + cc
-			+ ", adminc cc=" + adminCc
-			+ ", created=" + created
-			+ ", starts=" + starts
-			+ ", started=" + started
-			+ ", due=" + due
-			+ ", resolved=" + resolved
-			+ ", told=" + told
-			+ ", lastUpdated=" + lastUpdated
-			+ ", timeWorked=" + timeWorked
-			+ ", timeEstimated=" + timeEstimated
-			+ ", timeLeft=" + timeLeft
-			+ ", customFields=" + customFields + "]";
+			+ ", Queue=" + queue
+			+ ", Owner=" + owner
+			+ ", Creator=" + creator
+			+ ", Subject=" + subject
+			+ ", Status=" + status
+			+ ", Priority=" + priority
+			+ ", InitialPriority=" + initialPriority
+			+ ", FinalPriority=" + finalPriority
+			+ ", Requestors=" + requestors
+			+ ", Cc=" + cc
+			+ ", Adminc cc=" + adminCc
+			+ ", Created=" + created
+			+ ", Starts=" + starts
+			+ ", Started=" + started
+			+ ", Due=" + due
+			+ ", Resolved=" + resolved
+			+ ", Told=" + told
+			+ ", LastUpdated=" + lastUpdated
+			+ ", TimeWorked=" + timeWorked
+			+ ", TimeEstimated=" + timeEstimated
+			+ ", TimeLeft=" + timeLeft
+			+ ", CustomFields=" + customFields + "]";
 	}
 	
 	public String getNewTicketParams() {
 		
 		String params =  "id: ticket/new"
-			+ "\nrequestor: " + requestors
-			+ "\nsubject: " + subject
-			+ "\ncc: " + cc
-			+ "\nadmincc: " + adminCc
-			+ "\nowner: " + owner
-			+ "\nstatus: new" 
-			+ "\npriority: " + priority
-			+ "\ninitialPriority: " + initialPriority
-			+ "\nfinalPriority: " + finalPriority
-			+ "\ntimeEstimated: " + timeEstimated
-			+ "\nstarts: " + starts
-			+ "\ndue: " + due
-			+ "\nqueue: " + queue;
+			+ "\nRequestor: " + requestors
+			+ "\nSubject: " + subject
+			+ "\nCc: " + cc
+			+ "\nAdminCc: " + adminCc
+			+ "\nOwner: " + owner
+			+ "\nStatus: new" 
+			+ "\nPriority: " + priority
+			+ "\nInitialPriority: " + initialPriority
+			+ "\nFinalPriority: " + finalPriority
+			+ "\nTimeEstimated: " + timeEstimated
+			+ "\nStarts: " + starts
+			+ "\nDue: " + due
+			+ "\nQueue: " + queue;
 		
 		for (String customFieldName : customFields.keySet()) {
 			params += "\n" + customFieldName + ": " + customFields.get(customFieldName).getValue();

@@ -76,7 +76,7 @@ public class RESTRTTicketDAOTest {
     public void ticketHistory() throws Exception {
         RTTicketDAO dao = getDao();
         
-        List<RTTicketHistory> history = dao.findHistory(34);
+        List<RTTicketHistory> history = dao.findHistory(33);
         LOG.debug(history);
 //        Assert.assertEquals(ticket.getId().longValue(), 33l);
     }
