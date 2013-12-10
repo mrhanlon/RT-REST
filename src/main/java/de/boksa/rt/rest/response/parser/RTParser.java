@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.WordUtils;
 import org.apache.log4j.Logger;
 
@@ -28,13 +29,13 @@ public class RTParser {
 	
 	private static final String DELIMITER_LINES = "\n";
 	
-	private static final Pattern PATTERN_START_FIELD = Pattern.compile("^(\\w+?): ?(.*)");
+	private static final Pattern PATTERN_START_FIELD = Pattern.compile("^(\\w+?):\\s*(.*)");
+	
+	private static final Pattern WHITESPACE_PREFIX = Pattern.compile("^(\\s*)(.*)");
 	
 	// TODO this should be implemented at some point
 	// private static final Pattern CUSTOM_FIELD = Pattern.compile("^CF.\\{(.*)\\}: ?(.*)");
 	
-	private static final Pattern COMMENT_LINE = Pattern.compile("^#.*");
-
 	public List<Map<String, String>> parseResponse(RTRESTResponse response) {
       List<Map<String, String>> resultData = new LinkedList<Map<String, String>>();
       for (String responseString : response.getBody().split(DELIMITER)) {
@@ -53,8 +54,14 @@ public class RTParser {
 		List<Map<String, String>> resultData = new LinkedList<Map<String, String>>();
 
 		String fieldName = null;
+		String linePad = null;
 		StringBuilder fieldContent = new StringBuilder();
 		for (String responseLine : responseBody.split(DELIMITER_LINES)) {
+		    
+		    if (responseLine.length() == 0) {
+		        continue;
+		    }
+		    
 			Matcher m = PATTERN_START_FIELD.matcher(responseLine);
 			if (m.matches()) {
 			    // found a field
@@ -62,11 +69,6 @@ public class RTParser {
 				    // had matched a previous field, clear the queue
 				    String content = fieldContent.toString();
 				    
-					if (COMMENT_LINE.matcher(content).matches()) {
-					    // TODO does this ever hit?
-						content = content.replaceAll("#.*\\(.*\\)", "");
-					}
-					
 					// remove leading/trailing newlines
 					if (content.startsWith("\n") || content.endsWith("\n")) {
 					    content = content.replaceFirst("^\n+", "").replaceFirst("\n+$", "");
@@ -79,9 +81,22 @@ public class RTParser {
 				
 				fieldName = m.group(1);
 				fieldContent.append(m.group(2));
-			} else {
-			    // multiline field content
-				fieldContent.append("\n" + responseLine.trim());
+				linePad = null;
+			} else if (fieldName != null) {
+			    // Multiline field content; RT left-pads multiline fields with varying whitespace, but the amount
+			    // is the same for each line in the field
+			    if (linePad == null) {
+			        Matcher prefix = WHITESPACE_PREFIX.matcher(responseLine);
+			        if (prefix.matches()) {
+			            linePad = prefix.group(1);
+			        } else {
+			            linePad = "";
+			        }
+			    }
+			    if (responseLine.startsWith(linePad)) {
+			        responseLine = responseLine.replaceFirst(linePad, "");
+			    }
+				fieldContent.append("\n" + StringUtils.stripEnd(responseLine, null));
 			}
 		}
 		responseData.put(WordUtils.uncapitalize(fieldName), fieldContent.toString());

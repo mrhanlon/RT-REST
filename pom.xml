@@ -80,7 +80,6 @@ Copyright (C) 2012  Benjamin Boksa (http://www.boksa.de/)
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>${log4j.version}</version>
-      <scope>test</scope>
     </dependency>            
 
   </dependencies>

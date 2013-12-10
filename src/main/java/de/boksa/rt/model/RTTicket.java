@@ -250,6 +250,7 @@ public class RTTicket extends RTTicketAbstractObject implements RTCustomFieldObj
 	public String getNewTicketParams() {
 		
 		String params =  "id: ticket/new"
+	        + "\nQueue: " + queue
 			+ "\nRequestor: " + requestors
 			+ "\nSubject: " + subject
 			+ "\nCc: " + cc
@@ -262,7 +263,7 @@ public class RTTicket extends RTTicketAbstractObject implements RTCustomFieldObj
 			+ "\nTimeEstimated: " + timeEstimated
 			+ "\nStarts: " + starts
 			+ "\nDue: " + due
-			+ "\nQueue: " + queue;
+			;
 		
 		for (String customFieldName : customFields.keySet()) {
 			params += "\n" + customFieldName + ": " + customFields.get(customFieldName).getValue();

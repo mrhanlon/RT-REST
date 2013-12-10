@@ -67,17 +67,19 @@ public class RESTRTTicketDAOTest {
     public void ticketById() throws Exception {
         RTTicketDAO dao = getDao();
         
-        RTTicket ticket = dao.getTicket(34);
+        RTTicket ticket = dao.getTicket(32);
         
-        Assert.assertEquals(ticket.getId().longValue(), 34l);
+        Assert.assertEquals(ticket.getId().longValue(), 32l);
     }
 
     @Test
     public void ticketHistory() throws Exception {
         RTTicketDAO dao = getDao();
         
-        List<RTTicketHistory> history = dao.findHistory(33);
-        LOG.debug(history);
+        List<RTTicketHistory> history = dao.findHistory(14020);
+        for (RTTicketHistory entry : history) {
+            LOG.debug(entry.getContent());
+        }
 //        Assert.assertEquals(ticket.getId().longValue(), 33l);
     }
     

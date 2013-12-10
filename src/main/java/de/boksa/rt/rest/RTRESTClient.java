@@ -167,9 +167,6 @@ public abstract class RTRESTClient {
     		}
 		}
 		
-		content.append("\nAttachment: ");
-		//TODO handle attachments?
-		
 		if (parameters.get("action").equals("correspond")) {
 		    content.append("\nCc: ");
             content.append(parameters.get("cc"));
@@ -180,6 +177,9 @@ public abstract class RTRESTClient {
             content.append("\nTimeWorked: ");
             content.append(parameters.get("timeworked"));
 		}
+        
+        content.append("\nAttachment: ");
+        //TODO handle attachments?
 		
 		params.add(new BasicNameValuePair("content", content.toString()));
 
