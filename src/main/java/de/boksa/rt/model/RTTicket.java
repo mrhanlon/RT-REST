@@ -233,7 +233,7 @@ public class RTTicket extends RTTicketAbstractObject implements RTCustomFieldObj
 			+ ", FinalPriority=" + finalPriority
 			+ ", Requestors=" + requestors
 			+ ", Cc=" + cc
-			+ ", Adminc cc=" + adminCc
+			+ ", AdminCc=" + adminCc
 			+ ", Created=" + created
 			+ ", Starts=" + starts
 			+ ", Started=" + started

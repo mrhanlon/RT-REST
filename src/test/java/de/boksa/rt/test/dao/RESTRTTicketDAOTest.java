@@ -67,16 +67,16 @@ public class RESTRTTicketDAOTest {
     public void ticketById() throws Exception {
         RTTicketDAO dao = getDao();
         
-        RTTicket ticket = dao.getTicket(32);
+        RTTicket ticket = dao.getTicket(30);
         
-        Assert.assertEquals(ticket.getId().longValue(), 32l);
+        Assert.assertEquals(ticket.getId().longValue(), 30);
     }
 
     @Test
     public void ticketHistory() throws Exception {
         RTTicketDAO dao = getDao();
         
-        List<RTTicketHistory> history = dao.findHistory(14020);
+        List<RTTicketHistory> history = dao.findHistory(30);
         for (RTTicketHistory entry : history) {
             LOG.debug(entry.getContent());
         }
@@ -87,7 +87,7 @@ public class RESTRTTicketDAOTest {
     public void search() throws Exception {
         RTTicketDAO dao = getDao();
         
-        List<RTTicket> tickets = dao.findByQuery("Subject LIKE 'test'");
+        List<RTTicket> tickets = dao.findByQuery("Owner = 'Nobody' AND Status != 'resolved'");
         
         Assert.assertTrue("Search returned results", tickets.size() > 0);
     }
