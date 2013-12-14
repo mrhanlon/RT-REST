@@ -139,6 +139,8 @@ public abstract class RTRESTClient {
                 content.append(lines[i]);
             }
         }
+        
+        logger.debug(content.toString());
 		
 		params.add(new BasicNameValuePair("content", content.toString()));
 

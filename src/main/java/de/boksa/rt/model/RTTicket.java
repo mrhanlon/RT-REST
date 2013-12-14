@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.commons.beanutils.BeanUtils;
+import org.apache.commons.lang.StringUtils;
 import org.joda.time.DateTime;
 
 /* Ticket fields as per http://requesttracker.wikia.com/wiki/REST#Ticket_Properties:
@@ -249,27 +250,50 @@ public class RTTicket extends RTTicketAbstractObject implements RTCustomFieldObj
 	
 	public String getNewTicketParams() {
 		
-		String params =  "id: ticket/new"
-	        + "\nQueue: " + queue
-			+ "\nRequestor: " + requestors
-			+ "\nSubject: " + subject
-			+ "\nCc: " + cc
-			+ "\nAdminCc: " + adminCc
-			+ "\nOwner: " + owner
-			+ "\nStatus: new" 
-			+ "\nPriority: " + priority
-			+ "\nInitialPriority: " + initialPriority
-			+ "\nFinalPriority: " + finalPriority
-			+ "\nTimeEstimated: " + timeEstimated
-			+ "\nStarts: " + starts
-			+ "\nDue: " + due
-			;
-		
-		for (String customFieldName : customFields.keySet()) {
-			params += "\n" + customFieldName + ": " + customFields.get(customFieldName).getValue();
-		}
-			
-		return params;
+	    StringBuilder params = new StringBuilder("id: ticket/new");
+	    if (StringUtils.isNotEmpty(queue)) {
+	        params.append("\nQueue: ").append(queue);
+	    }
+        if (StringUtils.isNotEmpty(requestors)) {
+            params.append("\nRequestor: ").append(requestors);
+        }
+        if (StringUtils.isNotEmpty(subject)) {
+            params.append("\nSubject: ").append(subject);
+        }
+        if (StringUtils.isNotEmpty(cc)) {
+            params.append("\nCc: ").append(cc);
+        }
+        if (StringUtils.isNotEmpty(adminCc)) {
+            params.append("\nAdminCc: ").append(adminCc);
+        }
+        if (StringUtils.isNotEmpty(owner)) {
+            params.append("\nOwner: ").append(owner);
+        }
+        if (priority != null && priority > 0) {
+            params.append("\nPriority: ").append(priority);
+        }
+        if (initialPriority != null && initialPriority > 0) {
+            params.append("\nInitialPriority: ").append(initialPriority);
+        }
+        if (finalPriority != null && finalPriority > 0) {
+            params.append("\nFinalPriority: ").append(finalPriority);
+        }
+        if (timeEstimated != null && timeEstimated > 0) {
+            params.append("\nTimeEstimated: ").append(timeEstimated);
+        }
+        if (starts != null) {
+            params.append("\nStarts: ").append(starts);
+        }
+        if (due != null) {
+            params.append("\nDue: ").append(due);
+        }
+        
+        for (String customFieldName : customFields.keySet()) {
+            params.append("\n").append(customFieldName).append(": ")
+                .append(customFields.get(customFieldName).getValue());
+        }
+            
+        return params.toString();
 	}
 	
 	@Override
